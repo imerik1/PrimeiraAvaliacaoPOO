@@ -1,0 +1,208 @@
+<%-- any content can be specified here e.g.: --%>
+<%@ page pageEncoding="UTF-8" %>
+<%@page import="java.util.Random" %>
+<%@page import="java.util.ArrayList" %>
+<%@page import="java.util.List" %>
+<%
+    ServletContext context = request.getServletContext();
+    Boolean isLogged = session.getAttribute("session_name") != null;
+    Boolean isTryLogout = request.getParameter("logout") != null;
+    Boolean isTryLogin = request.getParameter("username") != null;
+    
+    String username = String.valueOf(session.getAttribute("session_name"));
+    String usernameParameter = String.valueOf(request.getParameter("username"));
+
+    List<String> usersOnline = context.getAttribute("users_online") == null ? new ArrayList() : (List) context.getAttribute("users_online");
+    List<Integer> numbers = session.getAttribute(username) == null ? new ArrayList() : (List) session.getAttribute(username);
+
+    if(isTryLogout && !isLogged) {
+        response.sendRedirect(request.getRequestURI());
+    } else if (isTryLogout) {
+        usersOnline.remove(usersOnline.indexOf(username));
+        
+        session.removeAttribute(username);
+        session.removeAttribute("session_name");
+        
+        response.sendRedirect(request.getRequestURI());
+    } else if (isTryLogin) {
+        session.setAttribute("session_name", usernameParameter);
+        
+        usersOnline.add(usernameParameter);
+        context.setAttribute("users_online", usersOnline);
+        
+        if(numbers.isEmpty()) {
+            Random generate = new Random();
+            for(Integer i = 0; i < 6; i++){
+                Integer number = 1 + generate.nextInt(59);
+                if(numbers.indexOf(number) >= 0) {
+                    i--;
+                    continue;
+                }
+                numbers.add(number);
+            }
+            session.setAttribute(usernameParameter, numbers);
+        }
+        response.sendRedirect(request.getRequestURI());
+    }
+%>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+    :root {
+        --black: #000807;
+        --white: #FBFFF;
+        --primary: #F93943;
+        --secondary: #FCECC9;
+    }
+    a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-family: 'Poppins', 'Roboto', 'Arial', sans-serif;
+        box-sizing: border-box;
+    }
+    body {
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+    }
+    header, main {
+        width: 100%;
+        padding: 1rem calc(100vw/10);
+    }
+    header {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0px 0px 21px -17px var(--black);
+    }
+    header.not_active {
+        justify-content: center;
+    }
+    header.not_active form {
+        flex-flow: row nowrap;
+        flex: 1;
+        max-width: 100%;
+    }
+    header.not_active form input[type="text"] {
+        width: 100%;
+        max-width: 250px;
+    }
+    header nav {
+        width: fit-content;
+    }
+    header nav ul {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        list-style-type: none;
+    }
+    main {
+        flex: 1;
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+    }
+    main > * {
+        width: fit-content;
+    }
+    span {
+        color: var(--primary);
+    }
+    form {
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 300px;
+    }
+    form input[type="text"] {
+        padding: 0.3rem 0.8rem;
+        border: 1px solid var(--black);
+        border-radius: 0.5rem;
+        width: 100%;
+    }
+    form input[type="submit"] {
+        padding: 0.3rem 0.8rem;
+        background: var(--secondary);
+        border-radius: 0.5rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    table {
+        width: 100%;
+        max-width: 600px;
+        border-spacing: 0px;
+    }
+    table thead {
+        width: 100%;
+    }
+    table tbody {
+        width: 100%;
+    }
+    table thead tr {
+        width: 100%;
+        background: var(--primary);
+        color: var(--white);
+    }
+    table thead tr th, tbody tr td {
+        width: fit-content;
+        padding: 0.4rem 0.8rem;
+    }
+    table tbody tr {
+        width: 100%;
+    }
+    table tbody tr td {
+        border-bottom: 1px solid var(--black);
+        border-left: 1px solid var(--black);
+        border-right: 1px solid var(--black);
+    }
+    .error {
+        color: var(--primary);
+    }
+</style>
+<%if(isLogged){%>
+<header>
+    <hgroup>
+    <h1>Erik S M dos Santos</h1>
+    <h2>Olá, <span><%=username%></span>!</h2>
+</hgroup>
+<nav>
+    <ul>
+        <li><a href="index.jsp">Página Inicial</a></li>
+        <li><a href="erik.jsp">Sobre</a></li>
+        <li><a href="erik-dica-megasena.jsp">Números da Sorte</a></li>
+    </ul>
+</nav>
+<form>
+    <input type="submit" value="Sair" name="logout" />
+</form>
+</header>
+<%} else {%>
+<header class="not_active">
+    <h1>Erik S M dos Santos</h1>
+    <form>
+        <label for="username">Digite seu nome</label>
+        <input type="text" name="username" placeholder="Digite seu nome de usuário" required />
+        <input type="submit" value="Fazer login" />
+    </form>
+</header>
+<%}%>
